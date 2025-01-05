@@ -41,12 +41,6 @@ const AdminDashboard = () => {
                     <p>{reportData.leavePercentage}%</p>
                 </div>
             </div>
-            <button
-                onClick={handleExportToExcel}
-                className="mt-4 bg-pink-600 text-white py-2 px-4 rounded hover:bg-pink-700 flex items-center"
-            >
-                <FileExcelOutlined style={{ marginRight: '8px' }} /> Export to Excel
-            </button>
         </div>
     );
 };
