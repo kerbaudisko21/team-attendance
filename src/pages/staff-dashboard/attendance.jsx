@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import { DatePicker, Card, Col, Row, Typography } from 'antd';
+import { FieldTimeOutlined } from '@ant-design/icons';
 
 const { Title, Text } = Typography;
 
@@ -103,7 +104,11 @@ const AttendancePage = () => {
     const { onTimeCount, lateCount } = calculateAttendanceSummary();
 
     return (
+
         <div className="attendance-container p-6">
+            <h2 className="text-2xl font-bold mb-4 flex items-center text-pink-600">
+                <FieldTimeOutlined style={{ marginRight: '8px' }} /> Staff Attendance
+            </h2>
             <Row gutter={[8, 8]} className="mb-4 items-center">
                 <Col xs={24} sm={12} md={12} lg={8}>
                     <DatePicker

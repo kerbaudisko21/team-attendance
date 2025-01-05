@@ -1,8 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { Modal, Button, Card, Row, Col, Typography } from 'antd';
-import { CheckCircleOutlined } from '@ant-design/icons';
+import { Modal, Button, Card, Row, Col, Typography, TimePicker } from 'antd';
+import { CheckCircleOutlined, FieldTimeOutlined } from '@ant-design/icons';
 
 const { Title, Text } = Typography;
+
+// Store coordinates (latitude, longitude)
+const stores = {
+    A: { name: "Store A", latitude: -6.200000, longitude: 106.816666 },
+    B: { name: "Store B", latitude: -6.210000, longitude: 106.820000 },
+};
+
+const userProfile = {
+    assignedStore: "A",
+};
 
 const StaffDashboard = () => {
     const [currentTime, setCurrentTime] = useState(getCurrentTime());
@@ -12,7 +22,7 @@ const StaffDashboard = () => {
     const [modalVisible, setModalVisible] = useState(false);
     const [modalMessage, setModalMessage] = useState('');
 
-    // Function to format time to HH:MM (without seconds)
+    // Function to format time to HH:MM
     function getCurrentTime() {
         const date = new Date();
         const hours = String(date.getHours()).padStart(2, '0');
@@ -20,30 +30,80 @@ const StaffDashboard = () => {
         return `${hours}:${minutes}`;
     }
 
-    // Update the current time every minute
-    useEffect(() => {
-        const timer = setInterval(() => {
-            setCurrentTime(getCurrentTime());
-        }, 60000); // Update every minute
+    // Calculate distance between two coordinates (Haversine formula)
+    function calculateDistance(latStart, lonStart, latEnd, lonEnd) {
+        const toRadians = (degrees) => degrees * (Math.PI / 180);
+        const earthRadius = 6371e3; // Earth's radius in meters
+        const startLatRad = toRadians(latStart);
+        const endLatRad = toRadians(latEnd);
+        const deltaLat = toRadians(latEnd - latStart);
+        const deltaLon = toRadians(lonEnd - lonStart);
 
-        return () => clearInterval(timer); // Cleanup on unmount
-    }, []);
+        const a =
+            Math.sin(deltaLat / 2) * Math.sin(deltaLat / 2) +
+            Math.cos(startLatRad) * Math.cos(endLatRad) * Math.sin(deltaLon / 2) * Math.sin(deltaLon / 2);
+        const centralAngle = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+        return earthRadius * centralAngle; // Distance in meters
+    }
 
     const handleCheckInOut = () => {
+        const bypassLocationCheck = true; // Set to true to bypass location validation for testing
+
         if (isCheckedIn) {
-            // Handle Check-Out
+            // Handle Check-Out (no location validation)
             const currentTime = getCurrentTime();
             setCheckOutTime(currentTime);
             setIsCheckedIn(false);
-            setModalMessage(`Check-out successful! You checked out at ${currentTime}`);
-        } else {
-            // Handle Check-In
+            setModalMessage(`Check-out successful! Time: ${currentTime}`);
+            setModalVisible(true);
+            return;
+        }
+
+        // Handle Check-In
+        if (bypassLocationCheck) {
+            const store = stores[userProfile.assignedStore];
             const currentTime = getCurrentTime();
             setCheckInTime(currentTime);
             setIsCheckedIn(true);
-            setModalMessage(`Check-in successful! Time: ${currentTime}`);
+            setModalMessage(`Check-in successful at ${store.name}! Time: ${currentTime}`);
+            setModalVisible(true);
+            return;
         }
-        setModalVisible(true);
+
+        // Proceed with location validation
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const { latitude, longitude } = position.coords;
+                    const store = stores[userProfile.assignedStore];
+
+                    const distance = calculateDistance(
+                        latitude,
+                        longitude,
+                        store.latitude,
+                        store.longitude
+                    );
+
+                    if (distance <= 100) { // Check if within 100 meters
+                        const currentTime = getCurrentTime();
+                        setCheckInTime(currentTime);
+                        setIsCheckedIn(true);
+                        setModalMessage(`Check-in successful at ${store.name}! Time: ${currentTime}`);
+                    } else {
+                        setModalMessage(`You are not at your assigned store (${store.name}).`);
+                    }
+                    setModalVisible(true);
+                },
+                (error) => {
+                    setModalMessage("Location access denied. Please enable location services.");
+                    setModalVisible(true);
+                }
+            );
+        } else {
+            setModalMessage("Geolocation is not supported by your browser.");
+            setModalVisible(true);
+        }
     };
 
     const handleCloseModal = () => {
@@ -52,8 +112,10 @@ const StaffDashboard = () => {
 
     return (
         <div className="bg-white p-6 rounded shadow w-full h-full">
-            <div className="w-full max-w-7xl mx-auto"> {/* Ensures a max width but stays aligned with sidebar */}
-                <Title level={2} className="text-center text-pink-600 mb-6">Staff Dashboard</Title>
+            <div className="w-full max-w-7xl mx-auto">
+                <h2 className="text-2xl font-bold mb-4 flex items-center text-pink-600">
+                    <FieldTimeOutlined style={{ marginRight: '8px' }} /> Staff Dashboard
+                </h2>
 
                 <Row gutter={16} className="mb-6">
                     <Col xs={24} sm={12} md={8}>
@@ -79,7 +141,7 @@ const StaffDashboard = () => {
                 <div className="flex justify-center mt-6">
                     <Button
                         onClick={handleCheckInOut}
-                        className="w-full sm:w-40" 
+                        className="w-full sm:w-40"
                         style={{
                             backgroundColor: '#D5006D',
                             borderColor: '#D5006D',

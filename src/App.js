@@ -6,9 +6,10 @@ import Sidebar from './components/sidebar';
 import AdminDashboard from './pages/admin-dashboard/dashboard';
 import StaffDashboard from './pages/staff-dashboard/dashboard';
 import ProfileDashboard from './pages/common-dashboard/profiledashboard';
+import AttendancePage from './pages/staff-dashboard/attendance';
+import Report from './pages/admin-dashboard/report'
 import Login from './pages/login';
 import './index.css';
-import AttendancePage from './pages/staff-dashboard/attendance';
 
 const { Content, Sider } = Layout;
 
@@ -79,6 +80,7 @@ const AppLayout = () => {
             <Routes>
               <Route path="/login" element={<Login />} />
               <Route path="/admin" element={<AdminDashboard />} />
+              <Route path="/admin/reports" element={<Report />} />
               <Route path="/staff" element={<StaffDashboard />} />
               <Route path="/staff/attendance" element={<AttendancePage />} />
               <Route path="/profile" element={<ProfileDashboard />} />
