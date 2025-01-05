@@ -4,11 +4,11 @@ import 'react-calendar/dist/Calendar.css';
 import { DatePicker, Card, Col, Row, Typography } from 'antd';
 
 const { Title, Text } = Typography;
-const { RangePicker } = DatePicker;
 
 const AttendancePage = () => {
     const [date, setDate] = useState(new Date());
-    const [selectedDateRange, setSelectedDateRange] = useState([null, null]);
+    const [startDate, setStartDate] = useState(null);
+    const [endDate, setEndDate] = useState(null);
 
     const dummyData = [
         { date: '2025-01-01', status: 'Late' },
@@ -33,20 +33,21 @@ const AttendancePage = () => {
         return record ? record.status : null;
     };
 
-    const onDateRangeChange = (dates) => {
-        setSelectedDateRange(dates);
-    };
-
     const calculateAttendanceSummary = () => {
         let onTimeCount = 0;
         let lateCount = 0;
+        const currentDate = new Date();
 
-        if (selectedDateRange && selectedDateRange[0] && selectedDateRange[1]) {
+        // Get the first day of the current month
+        const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+
+        // If both dates are selected
+        if (startDate && endDate) {
             dummyData.forEach((record) => {
                 const recordDate = new Date(record.date);
                 if (
-                    recordDate >= selectedDateRange[0].startOf('day') &&
-                    recordDate <= selectedDateRange[1].endOf('day')
+                    recordDate >= startDate &&
+                    recordDate <= endDate
                 ) {
                     if (record.status === 'On Time') {
                         onTimeCount++;
@@ -55,12 +56,43 @@ const AttendancePage = () => {
                     }
                 }
             });
-        } else {
+        }
+        // If only start date is selected (calculate from start date to today)
+        else if (startDate) {
             dummyData.forEach((record) => {
-                if (record.status === 'On Time') {
-                    onTimeCount++;
-                } else if (record.status === 'Late') {
-                    lateCount++;
+                const recordDate = new Date(record.date);
+                if (recordDate >= startDate && recordDate <= currentDate) {
+                    if (record.status === 'On Time') {
+                        onTimeCount++;
+                    } else if (record.status === 'Late') {
+                        lateCount++;
+                    }
+                }
+            });
+        }
+        // If only end date is selected (calculate from today to end date)
+        else if (endDate) {
+            dummyData.forEach((record) => {
+                const recordDate = new Date(record.date);
+                if (recordDate <= endDate && recordDate >= currentDate) {
+                    if (record.status === 'On Time') {
+                        onTimeCount++;
+                    } else if (record.status === 'Late') {
+                        lateCount++;
+                    }
+                }
+            });
+        }
+        // If no dates are selected, calculate from the start of the current month
+        else {
+            dummyData.forEach((record) => {
+                const recordDate = new Date(record.date);
+                if (recordDate >= firstDayOfMonth && recordDate <= currentDate) {
+                    if (record.status === 'On Time') {
+                        onTimeCount++;
+                    } else if (record.status === 'Late') {
+                        lateCount++;
+                    }
                 }
             });
         }
@@ -74,11 +106,20 @@ const AttendancePage = () => {
         <div className="attendance-container p-6">
             <Row gutter={[8, 8]} className="mb-4 items-center">
                 <Col xs={24} sm={12} md={12} lg={8}>
-                    <RangePicker
-                        value={selectedDateRange}
-                        onChange={onDateRangeChange}
+                    <DatePicker
+                        value={startDate}
+                        onChange={setStartDate}
                         style={{ width: '100%' }}
-                        placeholder={['Start Date', 'End Date']}
+                        placeholder="Start Date"
+                        format="YYYY-MM-DD"
+                    />
+                </Col>
+                <Col xs={24} sm={12} md={12} lg={8}>
+                    <DatePicker
+                        value={endDate}
+                        onChange={setEndDate}
+                        style={{ width: '100%' }}
+                        placeholder="End Date"
                         format="YYYY-MM-DD"
                     />
                 </Col>
