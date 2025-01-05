@@ -20,7 +20,7 @@ const Login = () => {
                 <div className="bg-white p-10 shadow-md rounded-lg w-full max-w-md">
                     <h2 className="text-2xl font-bold text-gray-800 mb-4">Get Started</h2>
                     <p className="text-sm text-gray-500 mb-6">
-                        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed.
+                        Please login to access the team attendance system.
                     </p>
                     <form>
                         {/* Username Field */}
